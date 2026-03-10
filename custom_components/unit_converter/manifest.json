@@ -1,0 +1,12 @@
+{
+  "domain": "unit_converter",
+  "name": "Unit Converter",
+  "codeowners": ["@dacid44"],
+  "config_flow": false,
+  "dependencies": [],
+  "documentation": "https://github.com/dacid44/ha_unit_converter",
+  "integration_type": "entity",
+  "iot_class": "calculated",
+  "requirements": ["pint=0.25.2"],
+  "version": "1.0.0"
+}

@@ -11,16 +11,15 @@ from homeassistant.core import (
     SupportsResponse,
     callback,
 )
-from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.entity_component import EntityComponent
+from homeassistant.helpers import intent
 
 from .const import DATA_COMPONENT, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=30)
-CONVERT_SERVICE_NAME: Final = "convert"
-CONVERT_SERVICE_SCHEMA = vol.Schema(
+CONVERT_UNITS_SERVICE_NAME: Final = "convert_units"
+CONVERT_UNITS_SERVICE_SCHEMA = vol.Schema(
     {
         vol.Required("input"): str,
         vol.Required("target"): str,
@@ -30,40 +29,48 @@ CONVERT_SERVICE_SCHEMA = vol.Schema(
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the Unit Converter component."""
-    # @TODO: Add setup code.
-
-    component = hass.data[DATA_COMPONENT] = EntityComponent[UnitConverterEntity](
-        _LOGGER, DOMAIN, hass, SCAN_INTERVAL
-    )
-    # component.async_register_entity_service(
-    #     SERVICE_CONVERT,
-    #     {vol.Required("input"): str, vol.Required("target"): str},
-    # )
-    await component.async_setup(config)
-
     hass.services.async_register(
         DOMAIN,
-        CONVERT_SERVICE_NAME,
-        convert,
-        schema=CONVERT_SERVICE_SCHEMA,
+        CONVERT_UNITS_SERVICE_NAME,
+        convert_units_service,
+        schema=CONVERT_UNITS_SERVICE_SCHEMA,
         supports_response=SupportsResponse.ONLY,
     )
+    intent.async_register(hass, ConvertUnitsIntent())
     return True
 
 
 @callback
-def convert(call: ServiceCall) -> ServiceResponse:
+def convert_units_service(call: ServiceCall) -> ServiceResponse:
     """Convert the input value to the target unit."""
     input = call.data["input"]
     target = call.data["target"]
+    return convert_units(input, target)
+
+
+class ConvertUnitsIntent(intent.IntentHandler):
+    """Handle ConvertUnits intents."""
+
+    intent_type = "ConvertUnitsIntent"
+    description = "Convert measurements to a different unit"
+    slot_schema = {
+        vol.Required("input"): intent.non_empty_string,
+        vol.Required("target"): intent.non_empty_string,
+    }
+
+    async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
+        """Handle the intent."""
+        slots = self.async_validate_slots(intent_obj.slots)
+
+        input = slots["input"]
+        target = slots["target"]
+
+        response = intent_obj.create_response()
+        response.response_type = intent.IntentResponseType.QUERY_ANSWER
+        response.async_set_speech(convert_units(input, target))
+
+        return response
+
+
+def convert_units(input: str, target: str) -> str:
     return {"result": f"converting {input} to {target}"}
-
-
-class UnitConverterEntity(Entity):
-    _attr_has_entity_name = True
-
-    def __init__(self):
-        pass
-
-    def convert(self, **kwargs):
-        pass

@@ -95,7 +95,8 @@ def convert_units(input: str, target: str) -> str:
     input_quantity = ureg(input)
     target_unit = ureg(target).units
     result = input_quantity.to(target_unit)
-    result_text = f"{input} is {result.magnitude.remove_suffix('.0')} {target_unit}"
+    result_magnitude = f"{round(result.magnitude, 5)}".removesuffix(".0")
+    result_text = f"{input} is {result_magnitude} {target_unit}"
     if result.magnitude != 1:
         result_text += "s"
     return result_text

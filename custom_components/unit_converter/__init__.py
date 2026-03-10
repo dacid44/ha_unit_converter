@@ -62,8 +62,8 @@ class ConvertUnitsIntent(intent.IntentHandler):
         """Handle the intent."""
         slots = self.async_validate_slots(intent_obj.slots)
 
-        input = slots["input"]
-        target = slots["target"]
+        input = slots["input"]["value"]
+        target = slots["target"]["value"]
 
         response = intent_obj.create_response()
         response.response_type = intent.IntentResponseType.QUERY_ANSWER

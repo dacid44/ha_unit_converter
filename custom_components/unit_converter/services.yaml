@@ -1,0 +1,12 @@
+convert:
+  fields:
+    input:
+      required: true
+      example: "3 tablespoons"
+      selector:
+        text: {}
+    target:
+      required: true
+      example: "cups"
+      selector:
+        text: {}

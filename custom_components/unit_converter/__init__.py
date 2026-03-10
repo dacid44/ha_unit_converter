@@ -13,6 +13,8 @@ from homeassistant.core import (
 )
 from homeassistant.helpers import intent
 
+from pint import UnitRegistry, UndefinedUnitError
+
 from .const import DATA_COMPONENT, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,6 +27,8 @@ CONVERT_UNITS_SERVICE_SCHEMA = vol.Schema(
         vol.Required("target"): str,
     }
 )
+
+ureg = UnitRegistry()
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
@@ -65,6 +69,21 @@ class ConvertUnitsIntent(intent.IntentHandler):
         input = slots["input"]["value"]
         target = slots["target"]["value"]
 
+        try:
+            result = convert_units(input, target)
+        except UndefinedUnitError as e:
+            response = intent_obj.create_response()
+            response_type = intent.IntentResponseType.ERROR
+            match e.unit_names:
+                case []:
+                    response.async_set_speech("I don't know that unit")
+                case [unit]:
+                    response.async_set_speech(f"I don't know the unit {unit}")
+                case units:
+                    response.async_set_speech(
+                        f"I don't know the units {', '.join(units)}"
+                    )
+
         response = intent_obj.create_response()
         response.response_type = intent.IntentResponseType.QUERY_ANSWER
         response.async_set_speech(convert_units(input, target))
@@ -73,4 +92,10 @@ class ConvertUnitsIntent(intent.IntentHandler):
 
 
 def convert_units(input: str, target: str) -> str:
-    return f"converting {input} to {target}"
+    input_quantity = ureg(input)
+    target_unit = ureg(target).units
+    result = input_quantity.to(target_unit)
+    result_text = f"{input} is {result.magnitude.remove_suffix('.0')} {target_unit}"
+    if result.magnitude != 1:
+        result_text += "s"
+    return result_text

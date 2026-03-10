@@ -45,13 +45,13 @@ def convert_units_service(call: ServiceCall) -> ServiceResponse:
     """Convert the input value to the target unit."""
     input = call.data["input"]
     target = call.data["target"]
-    return convert_units(input, target)
+    return {"result": convert_units(input, target)}
 
 
 class ConvertUnitsIntent(intent.IntentHandler):
     """Handle ConvertUnits intents."""
 
-    intent_type = "ConvertUnitsIntent"
+    intent_type = "ConvertUnits"
     description = "Convert measurements to a different unit"
     slot_schema = {
         vol.Required("input"): intent.non_empty_string,
@@ -73,4 +73,4 @@ class ConvertUnitsIntent(intent.IntentHandler):
 
 
 def convert_units(input: str, target: str) -> str:
-    return {"result": f"converting {input} to {target}"}
+    return f"converting {input} to {target}"

@@ -42,6 +42,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         supports_response=SupportsResponse.ONLY,
     )
     intent.async_register(hass, ConvertUnitsIntent())
+    intent.async_register(hass, HowManyUnits())
     return True
 
 

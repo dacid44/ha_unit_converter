@@ -196,7 +196,7 @@ def try_convert(quantity: Quantity, to: Unit) -> Quantity:
     except DimensionalityError as e:
         unit1 = str(e.units1).replace("_", " ")
         unit2 = str(e.units2).replace("_", " ")
-        raise ConvertException(f"I can't convert {unit1} to {unit2}")
+        raise ConvertException(f"I can't convert {unit1}s to {unit2}s")
 
 
 def error_message_from_unknown_units(unit_names: tuple[str, ...]) -> str:

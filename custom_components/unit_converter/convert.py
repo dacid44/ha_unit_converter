@@ -1,6 +1,6 @@
 from fractions import Fraction
 
-from pint import Quantity, UndefinedUnitError, UnitRegistry
+from pint import DimensionalityError, Quantity, UndefinedUnitError, Unit, UnitRegistry
 from text_to_num import alpha2digit
 from num2words import num2words
 
@@ -48,7 +48,7 @@ def convert_units(input: str, target: str) -> str:
     except UndefinedUnitError as e:
         raise ConvertException(error_message_from_unknown_units(e.unit_names))
 
-    result = quantity.to(target_unit)
+    result = try_convert(quantity, target_unit)
 
     return f"{format_quantity(quantity)} is {format_quantity(result)}"
 
@@ -63,7 +63,7 @@ def how_many(smaller: str, larger: str) -> str:
     except UndefinedUnitError as e:
         raise ConvertException(error_message_from_unknown_units(e.unit_names))
 
-    result = format_quantity((1 * larger_unit).to(smaller_unit))
+    result = format_quantity(try_convert(1 * larger_unit, smaller_unit))
     larger_unit_name = str(larger_unit).replace("_", " ")
     if larger_unit_name[0] in VOWELS:
         return f"there are {result} in an {larger_unit_name}"
@@ -188,6 +188,15 @@ def format_quantity(quantity: Quantity) -> str:
             return f"{magnitude} of a {unit}"
     else:
         return f"{magnitude} {unit}s"
+
+
+def try_convert(quantity: Quantity, to: Unit) -> Quantity:
+    try:
+        return quantity.to(to)
+    except DimensionalityError as e:
+        unit1 = str(e.units1).replace("_", " ")
+        unit2 = str(e.units2).replace("_", " ")
+        raise ConvertException(f"I can't convert {unit1} to {unit2}")
 
 
 def error_message_from_unknown_units(unit_names: tuple[str, ...]) -> str:

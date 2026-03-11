@@ -76,8 +76,9 @@ class ConvertUnitsIntent(intent.IntentHandler):
         except ConvertException as e:
             response = intent_obj.create_response()
             response.response_type = intent.IntentResponseType.ERROR
-            response.async_set_error(intent.IntentResponseErrorCode.FAILED_TO_HANDLE)
-            response.async_set_speech(str(e))
+            response.async_set_error(
+                intent.IntentResponseErrorCode.FAILED_TO_HANDLE, str(e)
+            )
             return response
 
         response = intent_obj.create_response()
@@ -108,8 +109,9 @@ class HowManyUnits(intent.IntentHandler):
         except ConvertException as e:
             response = intent_obj.create_response()
             response.response_type = intent.IntentResponseType.ERROR
-            response.async_set_error(intent.IntentResponseErrorCode.FAILED_TO_HANDLE)
-            response.async_set_speech(str(e))
+            response.async_set_error(
+                intent.IntentResponseErrorCode.FAILED_TO_HANDLE, str(e)
+            )
             return response
 
         response = intent_obj.create_response()

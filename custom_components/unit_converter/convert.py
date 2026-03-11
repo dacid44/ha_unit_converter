@@ -10,9 +10,10 @@ MAX_DENOMINATOR_EPSILON = 10**-MAX_FLOAT_DIGITS
 
 PRE_REPLACEMENTS = {
     "-": " ",
-    "\u00bc": "1 fourth",
-    "\u00bd": "1 half",
-    "\u00be": "3 fourths",
+    "\u00bc": "1/4",
+    "\u00bd": "1/2",
+    "\u00be": "3/4",
+    "\u2044": "/",
     "quarter": "fourth",
 }
 
@@ -72,26 +73,34 @@ def how_many(smaller: str, larger: str) -> str:
 
 
 def parse_input(input: str) -> Quantity:
+    input = input.strip()
+    for s, replacement in PRE_REPLACEMENTS.items():
+        input = input.replace(s, replacement)
     parts = [
         part
-        for part in alpha2digit(
-            input.strip().translate(PRE_REPLACEMENTS), "en", 0
-        ).split()
+        for part in alpha2digit(input, "en", 0).split()
         if part not in IGNORED_WORDS
     ]
 
     if len(parts) == 0:
         raise ConvertException("I could not find any useful input.")
 
+    new_parts = []
     for i in range(len(parts)):
         part = parts[i]
+        if "/" in part:
+            numerator, denominator = part.split("/")
+            new_parts.append(int(numerator))
+            new_parts.append(Fraction(1, int(denominator)))
+            continue
         if part in REPLACEMENTS:
-            parts[i] = REPLACEMENTS[part]
+            new_parts.append(REPLACEMENTS[part])
             continue
         try:
-            parts[i] = Fraction(part)
+            new_parts.append(Fraction(part))
         except ValueError:
-            pass
+            new_parts.append(part)
+    parts = new_parts
 
     i = len(parts) - 1
     while i >= 0 and isinstance(parts[i], str):
@@ -127,7 +136,11 @@ def parse_input(input: str) -> Quantity:
     match parts:
         case [whole, "and" | "&", fraction]:
             number = whole + fraction
-        case [whole, "and" | "&", numerator, denominator]:
+        case [whole, "and" | "&", numerator, denominator] | [
+            whole,
+            (int() | float() | Fraction()) as numerator,
+            denominator,
+        ]:
             number = whole + (numerator * denominator)
         case [whole, "point", decimal]:
             if (

@@ -4,8 +4,9 @@ from pint import Quantity, UndefinedUnitError, UnitRegistry
 from text_to_num import alpha2digit
 from num2words import num2words
 
-MAX_DENOMINATOR = 32
 MAX_FLOAT_DIGITS = 4
+MAX_DENOMINATOR = 32
+MAX_DENOMINATOR_EPSILON = 10**-MAX_FLOAT_DIGITS
 
 PRE_REPLACEMENTS = {
     "-": " ",
@@ -149,6 +150,9 @@ def parse_input(input: str) -> Quantity:
 
 def format_quantity(quantity: Quantity) -> str:
     number = Fraction(quantity.magnitude)
+    number_estimate = number.limit_denominator(MAX_DENOMINATOR)
+    if abs(number - number_estimate) < MAX_DENOMINATOR_EPSILON:
+        number = number_estimate
 
     if number.denominator == 1:
         magnitude = num2words(number.numerator)

@@ -7,6 +7,6 @@
   "documentation": "https://github.com/dacid44/ha_unit_converter",
   "integration_type": "entity",
   "iot_class": "calculated",
-  "requirements": ["pint==0.25.2"],
+  "requirements": ["pint==0.25.2", "text2num==3.0.1", "num2words==0.5.14"],
   "version": "1.0.0"
 }

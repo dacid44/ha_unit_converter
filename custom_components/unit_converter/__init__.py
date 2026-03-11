@@ -15,7 +15,8 @@ from homeassistant.helpers import intent
 
 from pint import UnitRegistry, UndefinedUnitError
 
-from .const import DATA_COMPONENT, DOMAIN
+from .const import DOMAIN
+from .convert import convert_units, how_many, ConvertException
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,32 +72,44 @@ class ConvertUnitsIntent(intent.IntentHandler):
 
         try:
             result = convert_units(input, target)
-        except UndefinedUnitError as e:
+        except ConvertException as e:
             response = intent_obj.create_response()
-            response_type = intent.IntentResponseType.ERROR
-            match e.unit_names:
-                case []:
-                    response.async_set_speech("I don't know that unit")
-                case [unit]:
-                    response.async_set_speech(f"I don't know the unit {unit}")
-                case units:
-                    response.async_set_speech(
-                        f"I don't know the units {', '.join(units)}"
-                    )
+            response.response_type = intent.IntentResponseType.ERROR
+            response.async_set_speech(str(e))
+            return response
 
         response = intent_obj.create_response()
         response.response_type = intent.IntentResponseType.QUERY_ANSWER
-        response.async_set_speech(convert_units(input, target))
-
+        response.async_set_speech(result)
         return response
 
 
-def convert_units(input: str, target: str) -> str:
-    input_quantity = ureg(input)
-    target_unit = ureg(target).units
-    result = input_quantity.to(target_unit)
-    result_magnitude = f"{round(result.magnitude, 5)}".removesuffix(".0")
-    result_text = f"{input} is {result_magnitude} {target_unit}"
-    if result.magnitude != 1:
-        result_text += "s"
-    return result_text
+class HowManyUnits(intent.IntentHandler):
+    """Handle HowManyUnits intents."""
+
+    intent_type = "HowManyUnits"
+    description = "Calculate how many of one unit are in another unit"
+    slot_schema = {
+        vol.Required("smaller"): intent.non_empty_string,
+        vol.Required("larger"): intent.non_empty_string,
+    }
+
+    async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
+        """Handle the intent."""
+        slots = self.async_validate_slots(intent_obj.slots)
+
+        smaller = slots["smaller"]["value"]
+        larger = slots["larger"]["value"]
+
+        try:
+            result = how_many(smaller, larger)
+        except ConvertException as e:
+            response = intent_obj.create_response()
+            response.response_type = intent.IntentResponseType.ERROR
+            response.async_set_speech(str(e))
+            return response
+
+        response = intent_obj.create_response()
+        response.response_type = intent.IntentResponseType.QUERY_ANSWER
+        response.async_set_speech(result)
+        return response

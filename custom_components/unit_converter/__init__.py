@@ -74,12 +74,7 @@ class ConvertUnitsIntent(intent.IntentHandler):
         try:
             result = convert_units(input, target)
         except ConvertException as e:
-            response = intent_obj.create_response()
-            response.response_type = intent.IntentResponseType.ERROR
-            response.async_set_error(
-                intent.IntentResponseErrorCode.FAILED_TO_HANDLE, str(e)
-            )
-            return response
+            result = str(e)
 
         response = intent_obj.create_response()
         response.response_type = intent.IntentResponseType.QUERY_ANSWER
@@ -107,12 +102,7 @@ class HowManyUnits(intent.IntentHandler):
         try:
             result = how_many(smaller, larger)
         except ConvertException as e:
-            response = intent_obj.create_response()
-            response.response_type = intent.IntentResponseType.ERROR
-            response.async_set_error(
-                intent.IntentResponseErrorCode.FAILED_TO_HANDLE, str(e)
-            )
-            return response
+            result = str(e)
 
         response = intent_obj.create_response()
         response.response_type = intent.IntentResponseType.QUERY_ANSWER

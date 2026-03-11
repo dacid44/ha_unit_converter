@@ -63,10 +63,11 @@ def how_many(smaller: str, larger: str) -> str:
         raise ConvertException(error_message_from_unknown_units(e.unit_names))
 
     result = format_quantity((1 * larger_unit).to(smaller_unit))
-    if str(larger_unit)[0] in VOWELS:
-        return f"there are {result} in an {larger_unit}"
+    larger_unit_name = str(larger_unit).replace("_", " ")
+    if larger_unit_name[0] in VOWELS:
+        return f"there are {result} in an {larger_unit_name}"
     else:
-        return f"there are {result} in a {larger_unit}"
+        return f"there are {result} in a {larger_unit_name}"
 
 
 def parse_input(input: str) -> Quantity:
@@ -172,7 +173,7 @@ def format_quantity(quantity: Quantity) -> str:
         if fraction.numerator > 1:
             magnitude += "s"
 
-    unit = str(quantity.units)
+    unit = str(quantity.units).replace("_", " ")
 
     if number == 1:
         return f"{magnitude} {unit}"
